@@ -26,10 +26,12 @@ async def lifespan(app: FastAPI):
     from ..agents.triage_agent import TriageAgent
     from ..agents.incident_response_agent import IncidentResponseAgent
     from ..agents.threat_intel_agent import ThreatIntelAgent
+    from ..agents.email_investigation_agent import EmailInvestigationAgent
     
     agent_manager.register_agent_type("triage", TriageAgent)
     agent_manager.register_agent_type("incident_response", IncidentResponseAgent)
     agent_manager.register_agent_type("threat_intel", ThreatIntelAgent)
+    agent_manager.register_agent_type("email_investigation", EmailInvestigationAgent)
     
     # Start all agents
     await agent_manager.start_all_agents()
@@ -67,7 +69,7 @@ app.add_middleware(
 # Add trusted host middleware
 app.add_middleware(
     TrustedHostMiddleware,
-    allowed_hosts=settings.allowed_hosts
+    allowed_hosts=settings.allowed_hosts_list
 )
 
 # Include routers

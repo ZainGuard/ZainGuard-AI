@@ -52,6 +52,7 @@ class BaseAgent(ABC):
         self.tools = {}
         self.is_running = False
         self.current_tasks: Dict[str, AgentTask] = {}
+        self.completed_tasks: Dict[str, AgentTask] = {}
     
     @abstractmethod
     async def process_task(self, task: AgentTask) -> Dict[str, Any]:
@@ -136,16 +137,17 @@ class BaseAgent(ABC):
             logger.error(f"Task {task.task_id} failed: {e}")
         
         finally:
-            # Remove completed task from current tasks
+            # Move completed task from current to completed tasks
             if task.task_id in self.current_tasks:
+                self.completed_tasks[task.task_id] = task
                 del self.current_tasks[task.task_id]
     
     def get_task_status(self, task_id: str) -> Optional[Dict[str, Any]]:
         """Get the status of a task."""
-        if task_id not in self.current_tasks:
+        # Check current tasks first, then completed tasks
+        task = self.current_tasks.get(task_id) or self.completed_tasks.get(task_id)
+        if not task:
             return None
-        
-        task = self.current_tasks[task_id]
         return {
             "task_id": task.task_id,
             "agent_id": task.agent_id,

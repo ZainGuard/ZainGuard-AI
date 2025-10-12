@@ -1,7 +1,8 @@
 """Configuration management for ZainGuard AI Platform."""
 
 from typing import List, Optional
-from pydantic import BaseSettings, Field
+from pydantic import Field
+from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
@@ -47,7 +48,12 @@ class Settings(BaseSettings):
     
     # Security Configuration
     secret_key: str = Field(default="your-secret-key-change-this", env="SECRET_KEY")
-    allowed_hosts: List[str] = Field(default=["localhost", "127.0.0.1"], env="ALLOWED_HOSTS")
+    allowed_hosts: str = Field(default="localhost,127.0.0.1", env="ALLOWED_HOSTS")
+    
+    @property
+    def allowed_hosts_list(self) -> List[str]:
+        """Convert comma-separated allowed_hosts to list."""
+        return [host.strip() for host in self.allowed_hosts.split(",")]
     
     # Rate Limiting
     rate_limit_requests: int = Field(default=100, env="RATE_LIMIT_REQUESTS")
