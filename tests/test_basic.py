@@ -1,8 +1,9 @@
 """Basic tests for ZainGuard AI Platform."""
 
 import pytest
-from src.core.config import Settings
+
 from src.core.agent_manager import AgentManager
+from src.core.config import Settings
 from src.core.llm_interface import LLMProvider
 
 
@@ -33,22 +34,23 @@ def test_llm_provider_enum():
 async def test_agent_manager_operations():
     """Test basic agent manager operations."""
     manager = AgentManager()
-    
+
     # Test registering agent type
     from src.agents.triage_agent import TriageAgent
+
     manager.register_agent_type("triage", TriageAgent)
     assert "triage" in manager.agent_types
-    
+
     # Test creating agent
     agent = manager.create_agent(
         agent_type="triage",
         agent_id="test-agent",
         name="Test Agent",
-        description="Test agent for unit testing"
+        description="Test agent for unit testing",
     )
     assert agent.agent_id == "test-agent"
     assert agent.name == "Test Agent"
-    
+
     # Test getting agent
     retrieved_agent = manager.get_agent("test-agent")
     assert retrieved_agent is not None
@@ -57,11 +59,11 @@ async def test_agent_manager_operations():
 
 def test_import_structure():
     """Test that all main modules can be imported."""
-    from src.core import AgentManager, LLMInterface, DatabaseConnector, Settings
-    from src.agents import TriageAgent, IncidentResponseAgent, ThreatIntelAgent
-    from src.tools import SIEMConnector, ThreatIntelAPI, JiraManager
+    from src.agents import IncidentResponseAgent, ThreatIntelAgent, TriageAgent
     from src.api import app
-    
+    from src.core import AgentManager, DatabaseConnector, LLMInterface, Settings
+    from src.tools import JiraManager, SIEMConnector, ThreatIntelAPI
+
     # Basic assertions to ensure imports work
     assert AgentManager is not None
     assert LLMInterface is not None
