@@ -148,8 +148,8 @@ jobs:
         context: .
         push: true
         tags: |
-          zainguard/zain-guard-ai:latest
-          zainguard/zain-guard-ai:${{ github.sha }}
+          zainguard/zainguard-ai:latest
+          zainguard/zainguard-ai:${{ github.sha }}
         cache-from: type=gha
         cache-to: type=gha,mode=max
 
