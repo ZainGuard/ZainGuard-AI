@@ -33,22 +33,23 @@ def test_llm_provider_enum():
 async def test_agent_manager_operations():
     """Test basic agent manager operations."""
     manager = AgentManager()
-    
+
     # Test registering agent type
     from src.agents.triage_agent import TriageAgent
+
     manager.register_agent_type("triage", TriageAgent)
     assert "triage" in manager.agent_types
-    
+
     # Test creating agent
     agent = manager.create_agent(
         agent_type="triage",
         agent_id="test-agent",
         name="Test Agent",
-        description="Test agent for unit testing"
+        description="Test agent for unit testing",
     )
     assert agent.agent_id == "test-agent"
     assert agent.name == "Test Agent"
-    
+
     # Test getting agent
     retrieved_agent = manager.get_agent("test-agent")
     assert retrieved_agent is not None
@@ -61,7 +62,7 @@ def test_import_structure():
     from src.agents import TriageAgent, IncidentResponseAgent, ThreatIntelAgent
     from src.tools import SIEMConnector, ThreatIntelAPI, JiraManager
     from src.api import app
-    
+
     # Basic assertions to ensure imports work
     assert AgentManager is not None
     assert LLMInterface is not None

@@ -31,8 +31,8 @@ async def list_available_tools():
                     "get_alerts_by_status",
                     "get_high_priority_alerts",
                     "get_security_events",
-                    "test_query"
-                ]
+                    "test_query",
+                ],
             },
             {
                 "name": "threat_intel_api",
@@ -43,8 +43,8 @@ async def list_available_tools():
                     "check_file_hash",
                     "get_threat_feed",
                     "search_threat_actors",
-                    "get_malware_families"
-                ]
+                    "get_malware_families",
+                ],
             },
             {
                 "name": "jira_manager",
@@ -57,9 +57,9 @@ async def list_available_tools():
                     "transition_ticket",
                     "search_tickets",
                     "create_incident_ticket",
-                    "create_vulnerability_ticket"
-                ]
-            }
+                    "create_vulnerability_ticket",
+                ],
+            },
         ]
     }
 
@@ -71,12 +71,8 @@ async def siem_search_logs(request: ToolTestRequest):
         siem = SIEMConnector()
         result = await siem.search_logs(**request.parameters)
         await siem.close()
-        
-        return {
-            "tool": "siem_connector",
-            "function": "search_logs",
-            "result": result
-        }
+
+        return {"tool": "siem_connector", "function": "search_logs", "result": result}
     except Exception as e:
         logger.error(f"Error testing SIEM search: {e}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -90,12 +86,8 @@ async def siem_test_query(request: ToolTestRequest):
         query = request.parameters.get("query", "*")
         result = await siem.test_query(query)
         await siem.close()
-        
-        return {
-            "tool": "siem_connector",
-            "function": "test_query",
-            "result": result
-        }
+
+        return {"tool": "siem_connector", "function": "test_query", "result": result}
     except Exception as e:
         logger.error(f"Error testing SIEM query: {e}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -109,14 +101,14 @@ async def threat_intel_check_ip(request: ToolTestRequest):
         ip_address = request.parameters.get("ip_address")
         if not ip_address:
             raise HTTPException(status_code=400, detail="ip_address parameter required")
-        
+
         result = await threat_intel.check_ip_reputation(ip_address)
         await threat_intel.close()
-        
+
         return {
             "tool": "threat_intel_api",
             "function": "check_ip_reputation",
-            "result": result
+            "result": result,
         }
     except Exception as e:
         logger.error(f"Error testing threat intel IP check: {e}")
@@ -131,14 +123,14 @@ async def threat_intel_check_domain(request: ToolTestRequest):
         domain = request.parameters.get("domain")
         if not domain:
             raise HTTPException(status_code=400, detail="domain parameter required")
-        
+
         result = await threat_intel.check_domain_reputation(domain)
         await threat_intel.close()
-        
+
         return {
             "tool": "threat_intel_api",
             "function": "check_domain_reputation",
-            "result": result
+            "result": result,
         }
     except Exception as e:
         logger.error(f"Error testing threat intel domain check: {e}")
@@ -153,14 +145,14 @@ async def threat_intel_check_hash(request: ToolTestRequest):
         file_hash = request.parameters.get("file_hash")
         if not file_hash:
             raise HTTPException(status_code=400, detail="file_hash parameter required")
-        
+
         result = await threat_intel.check_file_hash(file_hash)
         await threat_intel.close()
-        
+
         return {
             "tool": "threat_intel_api",
             "function": "check_file_hash",
-            "result": result
+            "result": result,
         }
     except Exception as e:
         logger.error(f"Error testing threat intel hash check: {e}")
@@ -174,11 +166,11 @@ async def jira_create_ticket(request: ToolTestRequest):
         jira = JiraManager()
         result = await jira.create_ticket(**request.parameters)
         await jira.close()
-        
+
         return {
             "tool": "jira_manager",
             "function": "create_ticket",
-            "result": {"ticket_key": result}
+            "result": {"ticket_key": result},
         }
     except Exception as e:
         logger.error(f"Error testing Jira ticket creation: {e}")
@@ -193,12 +185,8 @@ async def jira_search_tickets(request: ToolTestRequest):
         jql = request.parameters.get("jql", "project = SEC")
         result = await jira.search_tickets(jql)
         await jira.close()
-        
-        return {
-            "tool": "jira_manager",
-            "function": "search_tickets",
-            "result": result
-        }
+
+        return {"tool": "jira_manager", "function": "search_tickets", "result": result}
     except Exception as e:
         logger.error(f"Error testing Jira ticket search: {e}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -210,9 +198,9 @@ async def check_tools_health():
     health_status = {
         "siem_connector": {"status": "unknown", "message": "Not tested"},
         "threat_intel_api": {"status": "unknown", "message": "Not tested"},
-        "jira_manager": {"status": "unknown", "message": "Not tested"}
+        "jira_manager": {"status": "unknown", "message": "Not tested"},
     }
-    
+
     # Test SIEM connector
     try:
         siem = SIEMConnector()
@@ -220,11 +208,8 @@ async def check_tools_health():
         health_status["siem_connector"] = health
         await siem.close()
     except Exception as e:
-        health_status["siem_connector"] = {
-            "status": "error",
-            "message": str(e)
-        }
-    
+        health_status["siem_connector"] = {"status": "error", "message": str(e)}
+
     # Test threat intelligence API
     try:
         threat_intel = ThreatIntelAPI()
@@ -232,15 +217,12 @@ async def check_tools_health():
         result = await threat_intel.check_ip_reputation("8.8.8.8")
         health_status["threat_intel_api"] = {
             "status": "healthy",
-            "message": "API accessible"
+            "message": "API accessible",
         }
         await threat_intel.close()
     except Exception as e:
-        health_status["threat_intel_api"] = {
-            "status": "error",
-            "message": str(e)
-        }
-    
+        health_status["threat_intel_api"] = {"status": "error", "message": str(e)}
+
     # Test Jira manager
     try:
         jira = JiraManager()
@@ -248,13 +230,10 @@ async def check_tools_health():
         result = await jira.search_tickets("project = SEC", max_results=1)
         health_status["jira_manager"] = {
             "status": "healthy",
-            "message": "API accessible"
+            "message": "API accessible",
         }
         await jira.close()
     except Exception as e:
-        health_status["jira_manager"] = {
-            "status": "error",
-            "message": str(e)
-        }
-    
+        health_status["jira_manager"] = {"status": "error", "message": str(e)}
+
     return health_status

@@ -7,7 +7,7 @@ from .config import Settings
 
 __all__ = [
     "AgentManager",
-    "LLMInterface", 
+    "LLMInterface",
     "DatabaseConnector",
     "Settings",
 ]

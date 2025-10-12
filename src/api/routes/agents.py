@@ -45,14 +45,14 @@ async def get_agent(agent_id: str):
         agent = agent_manager.get_agent(agent_id)
         if not agent:
             raise HTTPException(status_code=404, detail="Agent not found")
-        
+
         return AgentResponse(
             agent_id=agent.agent_id,
             name=agent.name,
             description=agent.description,
             is_running=agent.is_running,
             available_tools=agent.get_available_tools(),
-            current_tasks=len(agent.current_tasks)
+            current_tasks=len(agent.current_tasks),
         )
     except HTTPException:
         raise
@@ -70,19 +70,19 @@ async def create_agent(request: CreateAgentRequest):
             agent_id=request.agent_id,
             name=request.name,
             description=request.description,
-            **(request.config or {})
+            **(request.config or {}),
         )
-        
+
         # Start the agent
         await agent.start()
-        
+
         return AgentResponse(
             agent_id=agent.agent_id,
             name=agent.name,
             description=agent.description,
             is_running=agent.is_running,
             available_tools=agent.get_available_tools(),
-            current_tasks=len(agent.current_tasks)
+            current_tasks=len(agent.current_tasks),
         )
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -98,9 +98,9 @@ async def start_agent(agent_id: str):
         agent = agent_manager.get_agent(agent_id)
         if not agent:
             raise HTTPException(status_code=404, detail="Agent not found")
-        
+
         await agent.start()
-        
+
         return {"message": f"Agent {agent_id} started successfully"}
     except HTTPException:
         raise
@@ -116,9 +116,9 @@ async def stop_agent(agent_id: str):
         agent = agent_manager.get_agent(agent_id)
         if not agent:
             raise HTTPException(status_code=404, detail="Agent not found")
-        
+
         await agent.stop()
-        
+
         return {"message": f"Agent {agent_id} stopped successfully"}
     except HTTPException:
         raise
@@ -134,7 +134,7 @@ async def get_agent_metrics(agent_id: str):
         metrics = agent_manager.get_agent_metrics(agent_id)
         if not metrics:
             raise HTTPException(status_code=404, detail="Agent not found")
-        
+
         return metrics
     except HTTPException:
         raise
@@ -150,11 +150,8 @@ async def get_agent_tools(agent_id: str):
         agent = agent_manager.get_agent(agent_id)
         if not agent:
             raise HTTPException(status_code=404, detail="Agent not found")
-        
-        return {
-            "agent_id": agent_id,
-            "tools": agent.get_available_tools()
-        }
+
+        return {"agent_id": agent_id, "tools": agent.get_available_tools()}
     except HTTPException:
         raise
     except Exception as e:
@@ -163,27 +160,19 @@ async def get_agent_tools(agent_id: str):
 
 
 @router.post("/agents/{agent_id}/tools/{tool_name}/execute")
-async def execute_agent_tool(
-    agent_id: str,
-    tool_name: str,
-    parameters: Dict[str, Any]
-):
+async def execute_agent_tool(agent_id: str, tool_name: str, parameters: Dict[str, Any]):
     """Execute a tool on an agent."""
     try:
         agent = agent_manager.get_agent(agent_id)
         if not agent:
             raise HTTPException(status_code=404, detail="Agent not found")
-        
+
         if not agent.is_running:
             raise HTTPException(status_code=400, detail="Agent is not running")
-        
+
         result = await agent.execute_tool(tool_name, **parameters)
-        
-        return {
-            "agent_id": agent_id,
-            "tool_name": tool_name,
-            "result": result
-        }
+
+        return {"agent_id": agent_id, "tool_name": tool_name, "result": result}
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except HTTPException:

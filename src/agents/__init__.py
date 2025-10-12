@@ -6,6 +6,6 @@ from .threat_intel_agent import ThreatIntelAgent
 
 __all__ = [
     "TriageAgent",
-    "IncidentResponseAgent", 
+    "IncidentResponseAgent",
     "ThreatIntelAgent",
 ]
