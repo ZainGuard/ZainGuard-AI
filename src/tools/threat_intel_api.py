@@ -1,9 +1,10 @@
 """Threat intelligence API connector for ZainGuard AI Platform."""
 
-from typing import Dict, List, Any, Optional
-import httpx
 import json
 from datetime import datetime
+from typing import Any, Dict, List, Optional
+
+import httpx
 from loguru import logger
 
 from ..core.config import settings

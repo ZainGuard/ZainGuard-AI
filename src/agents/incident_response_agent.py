@@ -1,15 +1,16 @@
 """Incident response agent for ZainGuard AI Platform."""
 
-from typing import Dict, List, Any, Optional
 import json
 from datetime import datetime
+from typing import Any, Dict, List, Optional
+
 from loguru import logger
 
-from ..core.agent_manager import BaseAgent, AgentTask
+from ..core.agent_manager import AgentTask, BaseAgent
 from ..core.llm_interface import LLMInterface
+from ..tools.jira_manager import JiraManager
 from ..tools.siem_connector import SIEMConnector
 from ..tools.threat_intel_api import ThreatIntelAPI
-from ..tools.jira_manager import JiraManager
 
 
 class IncidentResponseAgent(BaseAgent):

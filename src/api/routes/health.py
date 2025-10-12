@@ -1,7 +1,8 @@
 """Health check endpoints."""
 
+from typing import Any, Dict
+
 from fastapi import APIRouter, HTTPException
-from typing import Dict, Any
 from loguru import logger
 
 from ...core.agent_manager import agent_manager

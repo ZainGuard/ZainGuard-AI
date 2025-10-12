@@ -1,15 +1,16 @@
 """Email investigation agent for ZainGuard AI Platform."""
 
-from typing import Dict, List, Any, Optional
+import hashlib
 import json
 import re
-import hashlib
 from datetime import datetime
-from urllib.parse import urlparse
 from email.utils import parseaddr
+from typing import Any, Dict, List, Optional
+from urllib.parse import urlparse
+
 from loguru import logger
 
-from ..core.agent_manager import BaseAgent, AgentTask
+from ..core.agent_manager import AgentTask, BaseAgent
 from ..core.llm_interface import LLMInterface
 from ..tools.threat_intel_api import ThreatIntelAPI
 

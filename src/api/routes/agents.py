@@ -1,9 +1,10 @@
 """Agent management endpoints."""
 
-from fastapi import APIRouter, HTTPException, BackgroundTasks
-from typing import Dict, List, Any, Optional
-from pydantic import BaseModel
+from typing import Any, Dict, List, Optional
+
+from fastapi import APIRouter, BackgroundTasks, HTTPException
 from loguru import logger
+from pydantic import BaseModel
 
 from ...core.agent_manager import agent_manager
 

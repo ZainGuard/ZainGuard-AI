@@ -1,14 +1,15 @@
 """Threat intelligence agent for ZainGuard AI Platform."""
 
-from typing import Dict, List, Any, Optional
 import json
 from datetime import datetime, timedelta
+from typing import Any, Dict, List, Optional
+
 from loguru import logger
 
-from ..core.agent_manager import BaseAgent, AgentTask
+from ..core.agent_manager import AgentTask, BaseAgent
+from ..core.database_connector import db_connector
 from ..core.llm_interface import LLMInterface
 from ..tools.threat_intel_api import ThreatIntelAPI
-from ..core.database_connector import db_connector
 
 
 class ThreatIntelAgent(BaseAgent):

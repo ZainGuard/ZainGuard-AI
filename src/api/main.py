@@ -1,15 +1,16 @@
 """Main FastAPI application for ZainGuard AI Platform."""
 
+from contextlib import asynccontextmanager
+
+import uvicorn
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
-from contextlib import asynccontextmanager
-import uvicorn
 from loguru import logger
 
-from .routes import agents, tasks, tools, health
-from ..core.config import settings
 from ..core.agent_manager import agent_manager
+from ..core.config import settings
+from .routes import agents, health, tasks, tools
 
 
 @asynccontextmanager
@@ -24,10 +25,10 @@ async def lifespan(app: FastAPI):
     await db_connector._create_tables()
 
     # Register default agent types
-    from ..agents.triage_agent import TriageAgent
+    from ..agents.email_investigation_agent import EmailInvestigationAgent
     from ..agents.incident_response_agent import IncidentResponseAgent
     from ..agents.threat_intel_agent import ThreatIntelAgent
-    from ..agents.email_investigation_agent import EmailInvestigationAgent
+    from ..agents.triage_agent import TriageAgent
 
     agent_manager.register_agent_type("triage", TriageAgent)
     agent_manager.register_agent_type("incident_response", IncidentResponseAgent)
