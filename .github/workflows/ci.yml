@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.9, 3.10, 3.11, 3.12]
+        python-version: ['3.9', '3.10', '3.11', '3.12']
 
     steps:
     - uses: actions/checkout@v4
@@ -32,7 +32,7 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install -e .[dev]
+        pip install fastapi uvicorn[standard] pydantic langchain langchain-community openai anthropic chromadb pandas requests python-dotenv pydantic-settings httpx aiofiles python-multipart jinja2 pyyaml loguru tenacity tiktoken pytest pytest-asyncio pytest-cov black isort flake8 mypy pre-commit
     
     - name: Lint with flake8
       run: |
@@ -76,7 +76,7 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install -e .[dev]
+        pip install fastapi uvicorn[standard] pydantic langchain langchain-community openai anthropic chromadb pandas requests python-dotenv pydantic-settings httpx aiofiles python-multipart jinja2 pyyaml loguru tenacity tiktoken
         pip install bandit safety
     
     - name: Run bandit security linter
