@@ -1,91 +1,106 @@
-# Contributing to ZainGuard
+# Contributing to ZainGuard AI
 
-First off — **thank you** for your interest in contributing!
-
-ZainGuard is an open, community-driven project. We welcome developers, security engineers, researchers, and enthusiasts to help us build secure, open-source AI tools for security operations.
+Thank you for your interest in contributing. ZainGuard AI is an open-source framework for AI-assisted security operations — built to be read, understood, and extended by the community.
 
 ---
 
-## 🧭 How to Get Started
+## What Matters Most
 
-1. Fork the repository and clone it locally.
+**New connectors are the highest-impact contribution.**
 
-2. Create a new branch for your changes:
-   ```bash
-   git checkout -b feature/my-awesome-change
-   ```
+The framework is only as useful as the data it can reach. Every new connector extends what the Investigator Agent can see:
+- Layer 1 connectors (Snowflake, Okta, CloudTrail, Wiz, CrowdStrike) give access to raw security telemetry
+- Layer 2 connectors (Glean, GitHub, Confluence, Slack) give organizational context
+- Layer 3 connectors (VirusTotal, AbuseIPDB, Shodan, MISP) provide threat intelligence enrichment
 
-3. Make your updates (code, docs, or tests).
-
-4. Run tests (if applicable) and make sure everything passes.
-
-5. Submit a pull request (PR) describing what you did and why.
-
-That's it! A maintainer will review your PR and give feedback if needed.
+If your organization uses a security tool that isn't yet supported, that's the connector to write.
 
 ---
 
-## 💡 Ways to Contribute
+## How to Add a Connector
 
-You don't have to be a coder to help! Here are a few great ways to contribute:
+1. **Create the connector file** at `zainguard_ai_soc/connectors/<name>.py`
+2. **Implement the `BaseConnector` interface** (`zainguard_ai_soc/connectors/base.py`):
+   - `query(params: dict) -> QueryResult` — required for all connectors
+   - `health_check() -> bool` — required for all connectors
+   - `get_schema() -> dict` — required for Layer 1 (data lake) connectors only
+3. **Add a usage example** in `examples/<name>_connector.py`
+4. **For Layer 1 connectors**, add a schema YAML in `schema_examples/` — the Investigator Agent uses this to construct valid queries without hallucinating column names
+5. **Write tests** against mock data in `tests/` — no live credentials required
 
-- 🧱 Fix bugs or improve documentation
-- 🔍 Write new detection rules or playbooks
-- ⚙️ Add or test integrations (SIEM, LLMs, tools, etc.)
-- 🧠 Suggest features or share use cases
-- 🧪 Help with testing and validation
-- 🌐 Improve translations and accessibility
-
----
-
-## 🧰 Development Setup (Quick Start)
-
-1. Install dependencies (Python ≥3.10, Docker, etc.)
-
-2. Run the dev environment:
-   ```bash
-   docker compose up
-   ```
-
-3. Code lives under `/api`, `/agents`, and `/tools` directories.
-
-4. Follow PEP8 for Python and write clear docstrings/comments.
+Keep PRs focused: **one connector per PR**.
 
 ---
 
-## 🔒 Code and Security
+## Connector Template
 
-- Never commit secrets or credentials.
-- Use environment variables for API keys.
-- Report any security issues privately to **security@zainguard.com**.
+```python
+# zainguard_ai_soc/connectors/myconnector.py
+from zainguard_ai_soc.connectors.base import BaseConnector
+from zainguard_ai_soc.models import QueryResult
 
----
+class MyConnector(BaseConnector):
+    layer = "layer1"   # or "layer2" / "layer3"
+    name = "myconnector"
 
-## 💬 Community and Behavior
+    def __init__(self, api_key: str) -> None:
+        self.api_key = api_key
 
-- We follow the [Code of Conduct](CODE_OF_CONDUCT.md).
-- Be kind, inclusive, and respectful — everyone is learning.
-- If you disagree, do so constructively.
+    def query(self, params: dict) -> QueryResult:
+        # execute query, return QueryResult
+        # if nothing found: return QueryResult(..., found=False)
+        # if error: return QueryResult(..., found=False, error=str(e))
+        ...
 
----
-
-## 📦 Commit & PR Guidelines
-
-- Write clear commit messages (`feat:`, `fix:`, `docs:`, `refactor:`, etc.).
-- Keep PRs focused and small if possible.
-- Reference issues using `#issue-number`.
-- Include screenshots or logs if your change affects functionality.
-
----
-
-## 🏁 Getting Help
-
-- **Issues** → for bugs or feature requests
-- **Discussions** → for ideas or design feedback
-- **Discord / Slack** (coming soon) → for community chat
+    def health_check(self) -> bool:
+        # return True if the API is reachable, False otherwise
+        ...
+```
 
 ---
 
-**Thank you for helping build ZainGuard** ❤️
+## Development Setup
 
-Your contributions make open-source security stronger for everyone.
+```bash
+git clone https://github.com/sadewale4/zainguard-ai
+cd zainguard-ai
+python -m venv .venv && source .venv/bin/activate
+pip install -e ".[dev]"
+cp env.example .env   # fill in your API keys
+```
+
+Run the example investigation:
+```bash
+export ANTHROPIC_API_KEY=...
+python examples/reverse_shell_alert.py
+```
+
+Run tests:
+```bash
+pytest
+```
+
+---
+
+## Other Ways to Contribute
+
+- **Schema files** — if you use a data lake (Snowflake, BigQuery, Elasticsearch), add a real schema YAML for your log sources
+- **Example investigations** — add `examples/` scripts for different alert types (phishing, privilege escalation, data exfiltration, etc.)
+- **Bug fixes** — open an issue first so we can align on approach
+- **Documentation** — keep CLAUDE.md accurate as the framework evolves
+
+---
+
+## Guidelines
+
+- No live credentials in tests — mock the HTTP layer
+- Keep PRs focused and small
+- Write clear commit messages (`feat:`, `fix:`, `docs:`)
+- Never hardcode secrets — use environment variables
+- Report security issues privately to security@zainguard.com
+
+---
+
+## Questions?
+
+Open a GitHub Discussion or file an issue. We're happy to help scope a contribution before you start building.

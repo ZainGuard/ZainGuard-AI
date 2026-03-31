@@ -1,0 +1,85 @@
+# Example schema registry for a Snowflake security data lake.
+#
+# This file is provided to the Investigator Agent as context so it
+# can construct valid SQL queries without hallucinating column names.
+#
+# Customize this file to match your actual Snowflake schema.
+
+database: SECURITY_DB
+default_schema: SECURITY
+
+tables:
+
+  CLOUDTRAIL_LOGS:
+    description: AWS CloudTrail API activity logs
+    log_source: aws_cloudtrail
+    columns:
+      event_time: {type: TIMESTAMP_TZ, description: "When the API call occurred"}
+      event_name: {type: VARCHAR, description: "The AWS API action (e.g. RunInstances, AssumeRole)"}
+      event_source: {type: VARCHAR, description: "AWS service (e.g. ec2.amazonaws.com)"}
+      aws_region: {type: VARCHAR, description: "AWS region where the action occurred"}
+      source_ip_address: {type: VARCHAR, description: "IP that made the API call"}
+      user_agent: {type: VARCHAR, description: "Client used to make the API call"}
+      user_identity_type: {type: VARCHAR, description: "IAMUser, AssumedRole, Root, etc."}
+      user_identity_arn: {type: VARCHAR, description: "ARN of the principal making the call"}
+      user_identity_username: {type: VARCHAR, description: "Username if IAMUser type"}
+      assumed_role_session_name: {type: VARCHAR, description: "Session name if AssumedRole"}
+      error_code: {type: VARCHAR, description: "Error if the API call failed"}
+      error_message: {type: VARCHAR, description: "Error details if the API call failed"}
+      request_parameters: {type: VARIANT, description: "JSON of request parameters"}
+      response_elements: {type: VARIANT, description: "JSON of response data"}
+      resources: {type: VARIANT, description: "Array of affected AWS resources"}
+    sample_queries:
+      - "SELECT * FROM CLOUDTRAIL_LOGS WHERE source_ip_address = '1.2.3.4' AND event_time > DATEADD(hour, -24, CURRENT_TIMESTAMP)"
+      - "SELECT event_name, COUNT(*) FROM CLOUDTRAIL_LOGS WHERE user_identity_username = 'johndoe' GROUP BY event_name ORDER BY COUNT(*) DESC"
+
+  OKTA_LOGS:
+    description: Okta system log for authentication and user lifecycle events
+    log_source: okta
+    columns:
+      published: {type: TIMESTAMP_TZ, description: "When the event occurred"}
+      event_type: {type: VARCHAR, description: "Okta event type (e.g. user.session.start, user.authentication.sso)"}
+      display_message: {type: VARCHAR, description: "Human-readable event description"}
+      severity: {type: VARCHAR, description: "INFO, WARN, ERROR"}
+      outcome_result: {type: VARCHAR, description: "SUCCESS, FAILURE, SKIPPED, ALLOW, DENY, CHALLENGE"}
+      outcome_reason: {type: VARCHAR, description: "Reason for the outcome"}
+      actor_id: {type: VARCHAR, description: "Okta user ID of the acting principal"}
+      actor_login: {type: VARCHAR, description: "Email/login of the acting user"}
+      actor_display_name: {type: VARCHAR, description: "Full name of the acting user"}
+      client_ip_address: {type: VARCHAR, description: "IP address of the client"}
+      client_user_agent: {type: VARCHAR, description: "Browser or app user agent"}
+      client_geographical_context_city: {type: VARCHAR, description: "City from geo-IP"}
+      client_geographical_context_country: {type: VARCHAR, description: "Country from geo-IP"}
+      target: {type: VARIANT, description: "Array of target objects (apps, groups, users) affected"}
+      authentication_context_auth_provider: {type: VARCHAR, description: "Auth provider (e.g. OKTA, ACTIVE_DIRECTORY)"}
+      security_context_is_proxy: {type: BOOLEAN, description: "True if request came through a proxy"}
+    sample_queries:
+      - "SELECT * FROM OKTA_LOGS WHERE actor_login = 'user@company.com' AND event_type LIKE 'user.session%' ORDER BY published DESC LIMIT 50"
+      - "SELECT * FROM OKTA_LOGS WHERE client_ip_address = '1.2.3.4' AND published > DATEADD(hour, -48, CURRENT_TIMESTAMP)"
+
+  WIZ_RUNTIME_EVENTS:
+    description: Wiz runtime security events from cloud workloads and containers
+    log_source: wiz_runtime
+    columns:
+      event_time: {type: TIMESTAMP_TZ, description: "When the runtime event occurred"}
+      event_type: {type: VARCHAR, description: "Type of runtime event (e.g. NETWORK_CONNECTION, PROCESS_CREATED, FILE_MODIFIED)"}
+      severity: {type: VARCHAR, description: "CRITICAL, HIGH, MEDIUM, LOW, INFO"}
+      rule_name: {type: VARCHAR, description: "Wiz detection rule that triggered"}
+      rule_description: {type: VARCHAR, description: "Description of what the rule detects"}
+      resource_id: {type: VARCHAR, description: "Cloud resource ID (e.g. EC2 instance ID)"}
+      resource_type: {type: VARCHAR, description: "Type of cloud resource (VirtualMachine, Container, etc.)"}
+      resource_name: {type: VARCHAR, description: "Name of the cloud resource"}
+      cloud_account_id: {type: VARCHAR, description: "AWS account ID"}
+      region: {type: VARCHAR, description: "Cloud region"}
+      process_name: {type: VARCHAR, description: "Process name for process events"}
+      process_command_line: {type: VARCHAR, description: "Full command line for process events"}
+      process_pid: {type: NUMBER, description: "Process ID"}
+      parent_process_name: {type: VARCHAR, description: "Parent process name"}
+      network_destination_ip: {type: VARCHAR, description: "Destination IP for network events"}
+      network_destination_port: {type: NUMBER, description: "Destination port for network events"}
+      network_protocol: {type: VARCHAR, description: "Protocol (TCP, UDP)"}
+      file_path: {type: VARCHAR, description: "File path for file events"}
+    sample_queries:
+      - "SELECT * FROM WIZ_RUNTIME_EVENTS WHERE resource_id = 'i-0abc123def' AND event_time > DATEADD(hour, -6, CURRENT_TIMESTAMP) ORDER BY event_time DESC"
+      - "SELECT * FROM WIZ_RUNTIME_EVENTS WHERE event_type = 'NETWORK_CONNECTION' AND network_destination_ip = '1.2.3.4'"
+      - "SELECT * FROM WIZ_RUNTIME_EVENTS WHERE process_command_line ILIKE '%/bin/bash%' AND network_destination_port IN (4444, 1337, 9001)"
